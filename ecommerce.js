@@ -21,81 +21,63 @@ const products = JSON.parse(`[
 
 let carrito = [];
 
-// Sample product data
 function getStorageCarrito() {
-  const carritoFromJSON = localStorage.getItem("carrito");
-  return carritoFromJSON == null
-    ? []
-    : (parsedCarrito = JSON.parse(carritoFromJSON));
+  const cart2json = localStorage.getItem("carrito");
+  return (cart2json == null)?([]):(JSON.parse(cart2json));
 }
 function setStorageCarrito() {
-  const carritoJSON = JSON.stringify(carrito);
-  localStorage.setItem("carrito", carritoJSON);
+  const cart2string = JSON.stringify(carrito);
+  localStorage.setItem("carrito", cart2string);
 }
-
-//setStorageCarrito();
-//const cartBody = document.querySelector("#cartBody");
-
-//
-//producto.img = document.createElement("img");
-//img.src=".//images/milka 2.jpeg"
 
 carrito = getStorageCarrito();
 
 if (carrito != []) {
-  mostrar_carrito();
+  showCart();
 }
 
-// Function to display products on the webpage
 function displayProducts() {
-  const productList = document.getElementById("product-list");
+  const product_list = document.getElementById("product-list");
 
   products.forEach((product) => {
-    const productElement = document.createElement("div");
-    productElement.classList.add("product");
+    const product_element = document.createElement("div");
+    product_element.classList.add("product");
 
-    const nameElement = document.createElement("h3");
-    nameElement.textContent = product.name;
+    const name_element = document.createElement("h3");
+    name_element.textContent = product.name;
 
-    const imageElement = document.createElement("img");
-    imageElement.src = product.src;
+    const image_element = document.createElement("img");
+    image_element.src = product.src;
 
-    const priceElement = document.createElement("p");
-    priceElement.textContent = "$" + product.price;
+    const price_element = document.createElement("p");
+    price_element.textContent = "$" + product.price;
 
-    const addButton = document.createElement("button");
-    addButton.textContent = "Sumar al carrito";
-    //addButton.addEventListener("click", () => agregar_a_carrito(product));
-    addButton.classList.add("botonCompra");
+    const add_button = document.createElement("button");
+    add_button.textContent = "Sumar al carrito";
+    add_button.classList.add("add2Cart");
 
-    productElement.appendChild(imageElement);
-    productElement.appendChild(nameElement);
-    productElement.appendChild(priceElement);
-    productElement.appendChild(addButton);
-
-    productList.appendChild(productElement);
+    product_element.appendChild(image_element);
+    product_element.appendChild(name_element);
+    product_element.appendChild(price_element);
+    product_element.appendChild(add_button);
+    product_list.appendChild(product_element);
   });
 }
 
-// Call the displayProducts function when the page loads
-//window.addEventListener("load", displayProducts);
 displayProducts();
 
-function agregar_a_carrito(e) {
+function add2Cart(e) {
   let hijo = e.target;
   let padre = hijo.parentNode;
 
   let nombre_producto = padre.querySelector("h3").textContent;
-
-  let precio_producto = padre.querySelector("p").textContent;
-
-  let img_producto = padre.querySelector("img").src;
-
   let element = carrito.find((element) => element.nombre == nombre_producto);
   let found = element != undefined;
-  let cantidad_producto = !found ? 1 : element.cantidad++;
+  let cantidad_producto = (!found)?(1):(element.cantidad+1);
 
   if (!found) {
+    let precio_producto = parseInt(padre.querySelector("p").textContent.split("$")[1], 10);
+    let img_producto = padre.querySelector("img").src;
     let producto = {
       nombre: nombre_producto,
       precio: precio_producto,
@@ -105,15 +87,17 @@ function agregar_a_carrito(e) {
     carrito.push(producto);
   } else {
     let index = carrito.indexOf(element);
-    carrito[index].cantidad_producto;
+    let product = carrito[index];
+    let unit_price = product.precio/product.cantidad;
+    carrito[index].precio += unit_price;
+    carrito[index].cantidad = cantidad_producto;
   }
 
   setStorageCarrito();
-
-  mostrar_carrito();
+  showCart();
 }
 
-function mostrar_carrito() {
+function showCart() {
   let tabla = document.getElementById("tbody");
   tabla.innerHTML = "";
 
@@ -124,43 +108,46 @@ function mostrar_carrito() {
                           <td><p>${producto.nombre}</p></td>
                           <td>${producto.cantidad}</td>
                           <td>${producto.precio}</td>
-                          <td><button class="btn btn-danger borrar_elemento">Borrar</button></td>`;
+                          <td><button class="btn btn-danger delFromCart">Borrar</button></td>`;
     tabla.append(fila);
   }
 
-  let btn_borrar = document.querySelectorAll(".borrar_elemento");
+  let btn_borrar = document.querySelectorAll(".delFromCart");
 
   for (let btn of btn_borrar) {
-    btn.addEventListener("click", borrar_producto);
+    btn.addEventListener("click", delFromCart);
   }
 }
 
-function borrar_producto(e) {
+function delFromCart(e) {
   let abuelo = e.target.parentNode.parentNode;
   let cells = abuelo.cells;
   let nombre_producto = abuelo.id;
-  let element = carrito.find((element) => element.nombre == nombre_producto);
-  let cantidad_producto = element.cantidad - 1;
+  let product = carrito.find((product) => product.nombre == nombre_producto);
+  let cantidad_producto = product.cantidad - 1;
 
-  let index = carrito.indexOf(element);
+  let index = carrito.indexOf(product);
   if (cantidad_producto == 0) {
     abuelo.remove();
     carrito.splice(index, 1);
   } else {
+    let unit_price = product.precio/product.cantidad;
     cells[2].innerHTML = cantidad_producto;
+    carrito[index].precio -= unit_price;
     carrito[index].cantidad = cantidad_producto;
   }
 
   setStorageCarrito();
+  showCart();
 }
 
-let btn_compra = document.querySelectorAll(".botonCompra");
+let btn_compra = document.querySelectorAll(".add2Cart");
 
 for (let boton of btn_compra) {
-  boton.addEventListener("click", agregar_a_carrito);
+  boton.addEventListener("click", add2Cart);
 }
 
-let btn_carrito = document.getElementById("mostrar_carrito");
+let btn_carrito = document.getElementById("showCart");
 
 btn_carrito.addEventListener("click", function () {
   let carrito = document.getElementById("carrito");
